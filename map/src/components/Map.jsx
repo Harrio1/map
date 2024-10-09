@@ -17,10 +17,11 @@ L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.5.0/dist/images/";
 
 class MapComponent extends React.Component {
   state = {
-    lat: 55.702868,
-    lng: 37.530865,
-    zoom: 3,
-    basemap: 'dark',
+    // Установите координаты для Целинского района Ростовской области
+    lat: 46.536032,  // Широта
+    lng: 41.031736, // Долгота
+    zoom: 10,     // Увеличение для более детального просмотра
+    basemap: 'osm',
   };
 
   onBMChange = (bm) => {
@@ -45,13 +46,24 @@ class MapComponent extends React.Component {
       cycle: "https://dev.{s}.tile.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
     }
 
+    const bounds = [
+      [46.5, 40.9], // Юго-западная точка (примерные координаты Цилины)
+      [46.6, 41.2]   // Северо-восточная точка (примерные координаты Цилины)
+    ];
+
     return (
         <Map
           zoomControl={false}
           zoom={this.state.zoom}
           center={center}
-          minZoom={2}
-          className="map">
+          minZoom={8} // Минимальный зум, чтобы позволить приближение
+          maxZoom={18} // Максимальный зум для детального просмотра
+          bounds={bounds} // Устанавливаем границы карты
+          className="map"
+          maxBounds={bounds} // Ограничиваем перемещение за пределы области
+          maxBoundsVisibilty={true} // Включаем видимость границ
+          dragging={true} // Разрешаем перетаскивание карты
+        >
             
           <ZoomControl position={'bottomright'} />
           

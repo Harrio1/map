@@ -32,21 +32,23 @@ export default function GeojsonLayer ({url, cluster}) {
   var GroupComponent = cluster ? MarkerClusterGroup : FeatureGroup;
 
   // console.info(data);
-  return (
-      <GroupComponent>
-        {data.map(f => (
-            <Marker
-              key={JSON.stringify(f.properties)}
-              position={f.geometry.coordinates.reverse()}
-            >
-              <Popup minWidth={200} closeButton={false}>
-                <div style={{backgroundColor:"red", color:"white"}}>
-                  <b>Hello</b>
-                  <p>I am {f.properties.name}</p>
-                </div>
-              </Popup>
-            </Marker>
-        ))}
-      </GroupComponent>
-  );
+  // return (
+  //     <GroupComponent>
+  //       {data.map(f => (
+  //           <Marker
+  //             key={JSON.stringify(f.properties)}
+  //             position={f.geometry.coordinates.reverse()}
+  //           >
+  //             <Popup minWidth={200} closeButton={false}>
+  //               <div style={{backgroundColor:"red", color:"white"}}>
+  //                 <b>Hello</b>
+  //                 <p>I am {f.properties.name}</p>
+  //               </div>
+  //             </Popup>
+  //           </Marker>
+  //       ))}
+  //     </GroupComponent>
+  // );
+  // Удаляем маркеры, просто возвращаем null
+  return null; // Убираем отображение маркеров
 }
