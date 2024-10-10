@@ -11,12 +11,12 @@
     "leaflet-velocity": "^1.6.0",
     "leaflet.markercluster": "^1.4.1",
     "prop-types": "^15.7.2",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "react-leaflet": "1.9.1",
     "react-leaflet-markercluster": "^1.1.8",
     "react-redux": "^7.1.3",
-    "react-scripts": "3.3.0",
+    "react-scripts": "^4.0.3",
     "redux": "^4.0.5"
   },
   "scripts": {
