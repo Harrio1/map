@@ -5,7 +5,7 @@ import { Map,
   Marker, 
   Popup, 
   ZoomControl,
-  VideoOverlay } from "react-leaflet";
+  VideoOverlay  } from "react-leaflet";
 import Basemap from './Basemaps';
 import GeojsonLayer from '../layers/GeojsonLayerFunc';
 import VelocityLayer from "../layers/VelocityLayer";
@@ -21,7 +21,7 @@ class MapComponent extends React.Component {
     lat: 46.536032,  // Широта
     lng: 41.031736, // Долгота
     zoom: 10,     // Увеличение для более детального просмотра
-    basemap: 'osm', // Убедитесь, что это значение существует в basemapsDict
+    basemap: 'mapbox', // Убедитесь, что это значение существует в basemapsDict
   };
 
   // Переместите basemapsDict сюда
@@ -43,6 +43,8 @@ class MapComponent extends React.Component {
     }
   }
 
+
+
   render() {
     // console.log(this.props);
     const layersTypes = {
@@ -52,10 +54,7 @@ class MapComponent extends React.Component {
     }
     let center = [this.state.lat, this.state.lng];
 
-    const bounds = [
-      [46.5, 40.9], // Юго-западная точка (примерные координаты Цилины)
-      [46.6, 41.2]   // Северо-восточная точка (примерные координаты Цилины)
-    ];
+   
 
     const basemapUrl = this.basemapsDict[this.state.basemap];
 
@@ -71,10 +70,7 @@ class MapComponent extends React.Component {
           center={center}
           minZoom={8} // Минимальный зум, чтобы позволить приближение
           maxZoom={18} // Максимальный зум для детального просмотра
-          bounds={bounds} // Устанавливаем границы карты
           className="map"
-          maxBounds={bounds} // Ограничиваем перемещение за пределы области
-          maxBoundsVisibilty={true} // Включаем видимость границ
           dragging={true} // Разрешаем перетаскивание карты
         >
             
