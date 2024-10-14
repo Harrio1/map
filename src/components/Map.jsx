@@ -5,7 +5,8 @@ import { Map,
   Marker, 
   Popup, 
   ZoomControl,
-  VideoOverlay  } from "react-leaflet";
+  VideoOverlay,
+  Polygon } from "react-leaflet";
 import Basemap from './Basemaps';
 import GeojsonLayer from '../layers/GeojsonLayerFunc';
 import VelocityLayer from "../layers/VelocityLayer";
@@ -22,6 +23,8 @@ class MapComponent extends React.Component {
     lng: 41.031736, // Долгота
     zoom: 10,     // Увеличение для более детального просмотра
     basemap: 'mapbox', // Убедитесь, что это значение существует в basemapsDict
+    polygons: [], // Массив для хранения заливок
+    inputCoordinates: [], // Массив для хранения введенных координат
   };
 
   // Переместите basemapsDict сюда
@@ -32,70 +35,94 @@ class MapComponent extends React.Component {
     mapbox: "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.png"
   };
 
-  onBMChange = (bm) => {
-    console.log('Selected basemap:', bm); // Добавьте это для отладки
-    if (this.basemapsDict[bm]) { // Используйте this.basemapsDict
-      this.setState({
-        basemap: bm
+  handleInputChange = (e) => {
+    const { value } = e.target;
+    const coordinates = value.split(',').map(coord => coord.trim()).filter(coord => coord); // Разделяем по запятой и очищаем пробелы
+    this.setState({ inputCoordinates: coordinates });
+  };
+
+  addPolygon = () => {
+    if (this.state.inputCoordinates.length === 4) {
+      const coordinates = this.state.inputCoordinates.map(coord => {
+        const [lat, lng] = coord.split(' ').map(Number); // Преобразуем строку в массив чисел
+        return [lat, lng];
       });
+
+      const newPolygon = {
+        id: this.state.polygons.length + 1, // Нумерация заливки
+        coordinates: coordinates
+      };
+
+      this.setState(prevState => ({
+        polygons: [...prevState.polygons, newPolygon],
+        inputCoordinates: [] // Очистка поля ввода
+      }));
+      console.log("Polygon added:", newPolygon);
     } else {
-      console.error('Invalid basemap selected');
+      alert("Введите 4 координаты в формате 'lat lng', разделенные запятыми.");
     }
-  }
+  };
 
-
+  handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    const newCoordinates = [...this.state.inputCoordinates, `${lat} ${lng}`]; // Добавляем координаты в формате 'lat lng'
+    this.setState({
+      inputCoordinates: newCoordinates
+    });
+  };
 
   render() {
-    // console.log(this.props);
-    const layersTypes = {
-      'geojson': GeojsonLayer,
-      'velocityLayer': VelocityLayer,
-      'videoOverlay': VideoOverlay
-    }
-    let center = [this.state.lat, this.state.lng];
-
-   
-
+    const center = [this.state.lat, this.state.lng];
     const basemapUrl = this.basemapsDict[this.state.basemap];
 
     if (!basemapUrl) {
-        console.error('Basemap URL is undefined');
-        return null; // или отобразите сообщение об ошибке
+      console.error('Basemap URL is undefined');
+      return null;
     }
 
+    console.log("Current Polygons:", this.state.polygons); // Выводим текущие полигоны в консоль
+
     return (
+      <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
+        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000, background: 'white', padding: '10px', borderRadius: '5px' }}>
+          <input
+            type="text"
+            placeholder='Введите координаты в формате "lat lng", разделенные запятыми'
+            value={this.state.inputCoordinates.join(', ')} // Преобразуем массив в строку
+            onChange={this.handleInputChange}
+            style={{ width: '300px', marginRight: '10px' }}
+          />
+          <button onClick={this.addPolygon}>Сохранить заливку</button>
+        </div>
         <Map
           zoomControl={false}
           zoom={this.state.zoom}
           center={center}
-          minZoom={8} // Минимальный зум, чтобы позволить приближение
-          maxZoom={18} // Максимальный зум для детального просмотра
+          minZoom={8}
+          maxZoom={18}
           className="map"
-          dragging={true} // Разрешаем перетаскивание карты
+          dragging={true}
+          onClick={this.handleMapClick}
         >
-            
           <ZoomControl position={'bottomright'} />
-          
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url={basemapUrl}
           />
-          <Basemap basemap={this.state.basemap} onChange={this.onBMChange} />
-
-          {this.props.layers.map( l => {
-            if (l.visible) {
-              let LayerComp = layersTypes[l.type];
-              return (
-                <LayerComp key={l.id} {...l.options}/>
-              )
-            }
-          })}
-
-        
+          {this.state.polygons.map(polygon => (
+            <Polygon
+              key={polygon.id}
+              positions={polygon.coordinates}
+              color='blue'
+              fillColor='rgba(0, 0, 255, 0.5)'
+              fillOpacity={0.5}
+            />
+          ))}
           <Marker position={center}>
             <Popup><div>Выбрана тема {this.state.basemap}</div></Popup>
           </Marker>
         </Map>
+      </div>
     );
   }
 };
