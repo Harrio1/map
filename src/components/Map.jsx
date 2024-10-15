@@ -5,11 +5,9 @@ import { Map,
   Marker, 
   Popup, 
   ZoomControl,
-  VideoOverlay,
-  Polygon } from "react-leaflet";
-import Basemap from './Basemaps';
-import GeojsonLayer from '../layers/GeojsonLayerFunc';
-import VelocityLayer from "../layers/VelocityLayer";
+  Polygon,
+   } from "react-leaflet";
+
 import '../css/Map.css';
 import { connect } from "react-redux";
 
@@ -35,6 +33,8 @@ class MapComponent extends React.Component {
     mapbox: "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.png"
   };
 
+  colors = ['red', 'blue', 'green', 'orange', 'purple', 'cyan', 'magenta', 'yellow', 'brown']; // Массив цветов
+
   handleInputChange = (e) => {
     const { value } = e.target;
     const coordinates = value.split(',').map(coord => coord.trim()).filter(coord => coord); // Разделяем по запятой и очищаем пробелы
@@ -42,15 +42,17 @@ class MapComponent extends React.Component {
   };
 
   addPolygon = () => {
-    if (this.state.inputCoordinates.length === 4) {
-      const coordinates = this.state.inputCoordinates.map(coord => {
+    const { inputCoordinates } = this.state;
+    if (inputCoordinates.length >= 4 && inputCoordinates.length <= 9) {
+      const coordinates = inputCoordinates.map(coord => {
         const [lat, lng] = coord.split(' ').map(Number); // Преобразуем строку в массив чисел
         return [lat, lng];
       });
 
       const newPolygon = {
         id: this.state.polygons.length + 1, // Нумерация заливки
-        coordinates: coordinates
+        coordinates: coordinates,
+        color: this.colors[this.state.polygons.length % this.colors.length] // Выбор цвета
       };
 
       this.setState(prevState => ({
@@ -59,7 +61,7 @@ class MapComponent extends React.Component {
       }));
       console.log("Polygon added:", newPolygon);
     } else {
-      alert("Введите 4 координаты в формате 'lat lng', разделенные запятыми.");
+      alert("Введите от 4 до 9 координат в формате 'lat lng', разделенные запятыми.");
     }
   };
 
@@ -110,20 +112,35 @@ class MapComponent extends React.Component {
             url={basemapUrl}
           />
           {this.state.polygons.map(polygon => (
-            <Polygon
-              key={polygon.id}
-              positions={polygon.coordinates}
-              color='blue'
-              fillColor='rgba(0, 0, 255, 0.5)'
-              fillOpacity={0.5}
-            />
+            <React.Fragment key={polygon.id}>
+              <Polygon
+                positions={polygon.coordinates}
+                color={polygon.color}
+                fillColor={polygon.color} // Устанавливаем цвет заливки
+                fillOpacity={1} // Полностью непрозрачный
+              />
+              {/* Используем DivIcon для отображения номера поля с цветом полигона */}
+              <Marker
+                position={this.calculatePolygonCenter(polygon.coordinates)}
+                icon={L.divIcon({
+                  className: 'custom-div-icon',
+                  html: `<div style="padding: 4px; border-radius: 5px; font-weight: bold; color: white; background-color: ${polygon.color};"> ${polygon.id}</div>`,
+                  iconSize: [30, 30],
+                  iconAnchor: [15, 15]
+                })}
+              />
+            </React.Fragment>
           ))}
-          <Marker position={center}>
-            <Popup><div>Выбрана тема {this.state.basemap}</div></Popup>
-          </Marker>
         </Map>
       </div>
     );
+  }
+
+  // Функция для вычисления центра полигона
+  calculatePolygonCenter(coordinates) {
+    const latSum = coordinates.reduce((sum, coord) => sum + coord[0], 0);
+    const lngSum = coordinates.reduce((sum, coord) => sum + coord[1], 0);
+    return [latSum / coordinates.length, lngSum / coordinates.length];
   }
 };
 
