@@ -5,12 +5,12 @@ import '../css/Basemaps.css';
 class Basemap extends React.Component {
   state = {
     basemapsOpen: false,
-    activeBm: 'osm' // Убедитесь, что это значение существует в basemapsDict
+    activeBm: 'osm'
   }
 
   onBmClick = (bm) => {
     if (this.props.onChange) {
-      this.props.onChange(bm); // Передаем выбранное значение обратно в MapComponent
+      this.props.onChange(bm);
     }
     this.setState({activeBm: bm});
   }
@@ -20,6 +20,7 @@ class Basemap extends React.Component {
   }
 
   render() {
+    console.log("Rendering Basemap component"); // Добавьте этот вывод для отладки
     return (
       <div className="basemaps-container">
         <Button 

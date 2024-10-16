@@ -10,6 +10,7 @@ import { Map,
 
 import '../css/Map.css';
 import { connect } from "react-redux";
+import Basemap from './Basemaps'; // Импортируем компонент Basemap
 
 // указываем путь к файлам marker
 L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.5.0/dist/images/";
@@ -20,12 +21,12 @@ class MapComponent extends React.Component {
     lat: 46.536032,  // Широта
     lng: 41.031736, // Долгота
     zoom: 10,     // Увеличение для более детального просмотра
-    basemap: 'mapbox', // Убедитесь, что это значение существует в basemapsDict
+    basemap: 'osm', // Убедитесь, что это значение существует в basemapsDict
     polygons: [], // Массив для хранения заливок
     inputCoordinates: [], // Массив для хранения введенных координат
   };
 
-  // Переместите basemapsDict сюда
+  // Переместите basemapsDict сю��а
   basemapsDict = {
     osm: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     hot: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
@@ -45,19 +46,24 @@ class MapComponent extends React.Component {
     const { inputCoordinates } = this.state;
     if (inputCoordinates.length >= 4 && inputCoordinates.length <= 9) {
       const coordinates = inputCoordinates.map(coord => {
-        const [lat, lng] = coord.split(' ').map(Number); // Преобразуем строку в массив чисел
+        const [lat, lng] = coord.split(' ').map(Number);
         return [lat, lng];
       });
 
+      // Добавьте первую точку в конец массива, чтобы замкнуть полигон
+      if (coordinates.length > 0) {
+        coordinates.push(coordinates[0]);
+      }
+
       const newPolygon = {
-        id: this.state.polygons.length + 1, // Нумерация заливки
+        id: this.state.polygons.length + 1,
         coordinates: coordinates,
-        color: this.colors[this.state.polygons.length % this.colors.length] // Выбор цвета
+        color: this.colors[this.state.polygons.length % this.colors.length]
       };
 
       this.setState(prevState => ({
         polygons: [...prevState.polygons, newPolygon],
-        inputCoordinates: [] // Очистка поля ввода
+        inputCoordinates: []
       }));
       console.log("Polygon added:", newPolygon);
     } else {
@@ -73,6 +79,10 @@ class MapComponent extends React.Component {
     });
   };
 
+  changeBasemap = (basemap) => {
+    this.setState({ basemap });
+  };
+
   render() {
     const center = [this.state.lat, this.state.lng];
     const basemapUrl = this.basemapsDict[this.state.basemap];
@@ -82,15 +92,13 @@ class MapComponent extends React.Component {
       return null;
     }
 
-    console.log("Current Polygons:", this.state.polygons); // Выводим текущие полигоны в консоль
-
     return (
       <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000, background: 'white', padding: '10px', borderRadius: '5px' }}>
           <input
             type="text"
             placeholder='Введите координаты в формате "lat lng", разделенные запятыми'
-            value={this.state.inputCoordinates.join(', ')} // Преобразуем массив в строку
+            value={this.state.inputCoordinates.join(', ')}
             onChange={this.handleInputChange}
             style={{ width: '300px', marginRight: '10px' }}
           />
@@ -109,17 +117,16 @@ class MapComponent extends React.Component {
           <ZoomControl position={'bottomright'} />
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url={basemapUrl}
+            url={basemapUrl} // Используем URL из basemapsDict
           />
           {this.state.polygons.map(polygon => (
             <React.Fragment key={polygon.id}>
               <Polygon
                 positions={polygon.coordinates}
                 color={polygon.color}
-                fillColor={polygon.color} // Устанавливаем цвет заливки
-                fillOpacity={1} // Полностью непрозрачный
+                fillColor={polygon.color}
+                fillOpacity={1}
               />
-              {/* Используем DivIcon для отображения номера поля с цветом полигона */}
               <Marker
                 position={this.calculatePolygonCenter(polygon.coordinates)}
                 icon={L.divIcon({
@@ -132,6 +139,7 @@ class MapComponent extends React.Component {
             </React.Fragment>
           ))}
         </Map>
+        <Basemap onChange={this.changeBasemap} /> {/* Добавляем компонент Basemap */}
       </div>
     );
   }
