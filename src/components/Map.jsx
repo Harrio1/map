@@ -6,7 +6,8 @@ import { Map,
   Popup, 
   ZoomControl,
   Polygon,
-   } from "react-leaflet";
+  Polyline,
+  } from "react-leaflet";
 
 import '../css/Map.css';
 import { connect } from "react-redux";
@@ -84,6 +85,12 @@ class MapComponent extends React.Component {
 
     console.log("Current Polygons:", this.state.polygons); // Выводим текущие полигоны в консоль
 
+    // Преобразуем inputCoordinates в массив координат для Polyline
+    const polylineCoordinates = this.state.inputCoordinates.map(coord => {
+      const [lat, lng] = coord.split(' ').map(Number);
+      return [lat, lng];
+    });
+
     return (
       <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000, background: 'white', padding: '10px', borderRadius: '5px' }}>
@@ -111,6 +118,12 @@ class MapComponent extends React.Component {
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url={basemapUrl}
           />
+          {this.state.inputCoordinates.map((coord, index) => {
+            const [lat, lng] = coord.split(' ').map(Number);
+            return (
+              <Marker key={index} position={[lat, lng]} />
+            );
+          })}
           {this.state.polygons.map(polygon => (
             <React.Fragment key={polygon.id}>
               <Polygon
@@ -124,13 +137,14 @@ class MapComponent extends React.Component {
                 position={this.calculatePolygonCenter(polygon.coordinates)}
                 icon={L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="padding: 4px; border-radius: 5px; font-weight: bold; color: white; background-color: ${polygon.color};"> ${polygon.id}</div>`,
+                  html: `<div style="padding: 4px; border-radius: 5px; font-weight: bold; color: white; background-color: ${polygon.color};">Поле ${polygon.id}</div>`,
                   iconSize: [30, 30],
                   iconAnchor: [15, 15]
                 })}
               />
             </React.Fragment>
           ))}
+          <Polyline positions={polylineCoordinates} />
         </Map>
       </div>
     );
