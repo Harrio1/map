@@ -11,6 +11,7 @@ import { Map,
 
 import '../css/Map.css';
 import { connect } from "react-redux";
+import axios from 'axios';
 
 // указываем путь к файлам marker
 L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.5.0/dist/images/";
@@ -25,7 +26,7 @@ class MapComponent extends React.Component {
     polygons: [], // Массив для хранения заливок
     inputCoordinates: [], // Массив для хранения введенных координат
     creationMode: true, // Новый флаг для режима создания полей
-    selectedPolygonId: null, // ID выбранного полигона
+    selectedPolygonId: null, // ID выбранного полигон��
   };
 
   // Переместите basemapsDict сюда
@@ -44,25 +45,75 @@ class MapComponent extends React.Component {
     this.setState({ inputCoordinates: coordinates });
   };
 
-  addPolygon = () => {
+  componentDidMount() {
+    this.loadPolygonsFromDatabase();
+  }
+
+  loadPolygonsFromDatabase = async () => {
+    try {
+      const response = await axios.get('http://localhost:3002/api/polygons');
+      console.log('Загруженные полигоны:', response.data);
+      const polygons = response.data.map(polygon => ({
+        id: polygon.id,
+        coordinates: polygon.coordinates.split(',').map(coord => coord.split(' ').map(Number)),
+        color: polygon.color
+      }));
+      this.setState({ polygons });
+    } catch (error) {
+      console.error('Ошибка при загрузке полигонов:', error);
+    }
+  };
+
+  addPolygon = async () => {
     const { inputCoordinates } = this.state;
     if (inputCoordinates.length >= 4 && inputCoordinates.length <= 9) {
       const coordinates = inputCoordinates.map(coord => {
-        const [lat, lng] = coord.split(' ').map(Number); // Преобразуем строку в массив чисел
+        const [lat, lng] = coord.split(' ').map(Number);
         return [lat, lng];
       });
 
       const newPolygon = {
-        id: this.state.polygons.length + 1, // Нумерация заливки
-        coordinates: coordinates,
-        color: this.colors[this.state.polygons.length % this.colors.length] // Выбор цвета
+        name: `Поле ${this.state.polygons.length + 1}`,
+        color: this.colors[this.state.polygons.length % this.colors.length],
+        coordinates: coordinates
       };
+      console.log('Отправляемый полигон:', newPolygon);
 
-      this.setState(prevState => ({
-        polygons: [...prevState.polygons, newPolygon],
-        inputCoordinates: [] // Очистка поля ввода
-      }));
-      console.log("Polygon added:", newPolygon);
+      try {
+        console.log('Отправка данных на сервер:', newPolygon);
+        const response = await axios.post('http://localhost:3002/api/polygons', newPolygon);
+        console.log('Ответ сервера:', response.data);
+
+        if (response.data.success) {
+          const addedPolygon = {
+            id: response.data.id,
+            coordinates: coordinates,
+            color: newPolygon.color
+          };
+
+          this.setState(prevState => ({
+            polygons: [...prevState.polygons, addedPolygon],
+            inputCoordinates: []
+          }));
+
+          console.log("Полигон добавлен:", addedPolygon);
+        } else {
+          console.error('Ошибка при добавлении полигона:', response.data.error);
+          alert(`Не удалось сохранить полигон: ${response.data.error}`);
+        }
+      } catch (error) {
+        console.error('Ошибка при добавлении полигона:', error);
+        if (error.response) {
+          console.error('Ответ сервера:', error.response.data);
+          console.error('Статус ответа:', error.response.status);
+          console.error('Заголовки ответа:', error.response.headers);
+        } else if (error.request) {
+          console.error('Запрос был сделан, но овет не получен', error.request);
+        } else {
+          console.error('Ошибка при настройке запроса', error.message);
+        }
+        alert(`Ошибка: ${error.message}`);
+      }
     } else {
       alert("Введите от 4 до 9 координат в формате 'lat lng', разделенные запятыми.");
     }
@@ -104,6 +155,12 @@ class MapComponent extends React.Component {
   clearMarkers = () => {
     this.setState({ inputCoordinates: [] });
   };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.polygons !== this.state.polygons) {
+      console.log('Обновлено состояние полигонов:', this.state.polygons);
+    }
+  }
 
   render() {
     const center = [this.state.lat, this.state.lng];
@@ -160,31 +217,13 @@ class MapComponent extends React.Component {
             );
           })}
           {this.state.polygons.map(polygon => (
-            <React.Fragment key={polygon.id}>
-              <Polygon
-                positions={polygon.coordinates}
-                color={polygon.color}
-                fillColor={polygon.color} // Устанавливаем цвет заливки
-                fillOpacity={1} // Полностью непрозрачный
-                onClick={() => this.selectPolygon(polygon.id)} // Обработчик клика для выбора полигона
-              >
-                <Popup>
-                  <div>
-                    <p>Поле {polygon.id}</p>
-                    <button onClick={this.removeSelectedPolygon}>Удалить поле</button>
-                  </div>
-                </Popup>
-              </Polygon>
-              <Marker
-                position={this.calculatePolygonCenter(polygon.coordinates)}
-                icon={L.divIcon({
-                  className: 'custom-div-icon',
-                  html: `<div style="padding: 4px; border-radius: 5px; font-weight: bold; color: white; background-color: ${polygon.color};">Поле ${polygon.id}</div>`,
-                  iconSize: [30, 30],
-                  iconAnchor: [15, 15]
-                })}
-              />
-            </React.Fragment>
+            <Polygon
+              key={polygon.id}
+              positions={polygon.coordinates}
+              color={polygon.color}
+              fillColor={polygon.color}
+              fillOpacity={0.5}
+            />
           ))}
           <Polyline positions={polylineCoordinates} />
         </Map>
