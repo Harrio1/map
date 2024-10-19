@@ -1,14 +1,6 @@
 import React from "react";
 import L from 'leaflet';
-import { Map, 
-  TileLayer, 
-  Marker, 
-  Popup, 
-  ZoomControl,
-  Polygon,
-  Polyline,
-  } from "react-leaflet";
-
+import { Map, TileLayer, Marker, Popup, ZoomControl, Polygon, Polyline } from "react-leaflet";
 import '../css/Map.css';
 import { connect } from "react-redux";
 import axios from 'axios';
@@ -26,7 +18,7 @@ class MapComponent extends React.Component {
     polygons: [], // Массив для хранения заливок
     inputCoordinates: [], // Массив для хранения введенных координат
     creationMode: true, // Новый флаг для режима создания полей
-    selectedPolygonId: null, // ID выбранного полигон��
+    selectedPolygonId: null, // ID выбранного полигон
   };
 
   // Переместите basemapsDict сюда
