@@ -1,5 +1,6 @@
 module.exports = {
   devServer: {
-    allowedHosts: ['localhost', 'localhost:8000', '127.0.0.1'],
+    allowedHosts: ['localhost'], // Убедитесь, что здесь указаны допустимые хосты
+    port: 3001, // Измените порт на 3001 или любой другой свободный порт
   },
 };
