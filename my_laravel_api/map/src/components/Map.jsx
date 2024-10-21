@@ -15,7 +15,7 @@ class MapComponent extends React.Component {
     lng: 41.031736, // Долгота
     zoom: 10,     // Увеличение для более детального просмотра
     basemap: 'mapbox', // Убедитесь, что это значение существует в basemapsDict
-    polygons: [], // Массив для хранения заливок
+    polygons: [], // Массив для хран��ния заливок
     inputCoordinates: [], // Массив для хранения введенных координат
     creationMode: true, // Новый флаг для режима создания полей
     selectedPolygonId: null, // ID выбранного полигон
@@ -107,7 +107,7 @@ class MapComponent extends React.Component {
         alert(`Ошибка: ${error.message}`);
       }
     } else {
-      alert("Введите от 4 до 9 координат в формате 'lat lng', разделенные запятыми.");
+      alert("Введите от 4 до 9 координат в фо��мате 'lat lng', разделенные запятыми.");
     }
   };
 

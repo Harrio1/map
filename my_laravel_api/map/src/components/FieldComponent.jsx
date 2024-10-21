@@ -6,7 +6,7 @@ const FieldComponent = () => {
 
     useEffect(() => {
         // Получение данных из API
-        axios.get('http://localhost:8000/api/fields')
+        axios.get('http://localhost:3003/api/fields')
             .then(response => {
                 setData(response.data);
             })
@@ -17,7 +17,7 @@ const FieldComponent = () => {
 
     const handleSubmit = () => {
         // Отправка данных на API
-        axios.post('http://localhost:8000/api/fields', { /* ваши данные */ })
+        axios.post('http://localhost:3003/api/fields', { /* ваши данные */ })
             .then(response => {
                 console.log(response.data);
             })
